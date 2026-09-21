@@ -1,15 +1,12 @@
 import os
 import secrets
-import smtplib
 import time
 import asyncio
 import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formataddr
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
+import resend
 
 load_dotenv()
 
@@ -20,10 +17,11 @@ logging.basicConfig(
 logger = logging.getLogger("cybiotic-bot")
 
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
-GMAIL_USER = os.getenv("GMAIL_USER")
-GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 STUDENT_ROLE_ID = int(os.getenv("STUDENT_ROLE_ID", 0))
 ALLOWED_DOMAIN = os.getenv("ALLOWED_DOMAIN", "@student.hh.se")
+
+# Resend API setup
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 EXPIRATION_SECONDS = 600
 MAX_ATTEMPTS = 3
@@ -37,11 +35,6 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 def _dispatch_email(to_email: str, code: str) -> None:
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Your CyBiotic Society Verification Code"
-    msg["From"] = formataddr(("CyBiotic Society", GMAIL_USER))
-    msg["To"] = to_email
-
     text_content = (
         f"Hello,\n\n"
         f"Your verification code for CyBiotic Society is: {code}\n"
@@ -68,13 +61,15 @@ def _dispatch_email(to_email: str, code: str) -> None:
     </html>
     """
 
-    msg.attach(MIMEText(text_content, "plain", "utf-8"))
-    msg.attach(MIMEText(html_content, "html", "utf-8"))
+    params: resend.Emails.SendParams = {
+        "from": "CyBiotic Society <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": "Your CyBiotic Society Verification Code",
+        "html": html_content,
+        "text": text_content,
+    }
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-        smtp.starttls()
-        smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-        smtp.sendmail(GMAIL_USER, to_email, msg.as_string())
+    resend.Emails.send(params)
 
 @client.event
 async def on_ready():
