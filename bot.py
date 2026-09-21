@@ -3,10 +3,10 @@ import secrets
 import time
 import asyncio
 import logging
+import requests
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
-import resend
 
 load_dotenv()
 
@@ -20,8 +20,9 @@ BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 STUDENT_ROLE_ID = int(os.getenv("STUDENT_ROLE_ID", 0))
 ALLOWED_DOMAIN = os.getenv("ALLOWED_DOMAIN", "@student.hh.se")
 
-# Resend API setup
-resend.api_key = os.getenv("RESEND_API_KEY")
+# Brevo API configuration
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+SENDER_EMAIL = os.getenv("GMAIL_USER", "cybioticsociety@gmail.com")
 
 EXPIRATION_SECONDS = 600
 MAX_ATTEMPTS = 3
@@ -35,6 +36,8 @@ client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 def _dispatch_email(to_email: str, code: str) -> None:
+    url = "https://api.brevo.com/v3/smtp/email"
+
     text_content = (
         f"Hello,\n\n"
         f"Your verification code for CyBiotic Society is: {code}\n"
@@ -61,15 +64,23 @@ def _dispatch_email(to_email: str, code: str) -> None:
     </html>
     """
 
-    params: resend.Emails.SendParams = {
-        "from": "CyBiotic Society <onboarding@resend.dev>",
-        "to": [to_email],
+    payload = {
+        "sender": {"name": "CyBiotic Society", "email": SENDER_EMAIL},
+        "to": [{"email": to_email}],
         "subject": "Your CyBiotic Society Verification Code",
-        "html": html_content,
-        "text": text_content,
+        "htmlContent": html_content,
+        "textContent": text_content,
     }
 
-    resend.Emails.send(params)
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    if response.status_code not in (200, 201):
+        raise RuntimeError(f"Brevo API error: {response.status_code} {response.text}")
 
 @client.event
 async def on_ready():
