@@ -25,31 +25,34 @@ All bot responses in Discord are ephemeral (only visible to the user running the
 
 Create a `.env` file in the root directory (or set them in Railway under Variables):
 
+```env
 DISCORD_TOKEN=your_discord_token
 STUDENT_ROLE_ID=your_student_role_id
 ALLOWED_DOMAIN=@student.hh.se
 BREVO_API_KEY=your_brevo_api_key
 GMAIL_USER=your@email.com
 
-## Local Setup
+# Local Setup
 
-1. Clone the repository:
-git clone https://github.com/your-username/cybiotic-verification-bot.git
-cd cybiotic-verification-bot
+Clone the repository:  
+`git clone https://github.com/your-username/cybiotic-verification-bot.git`  
+`cd cybiotic-verification-bot`  
 
-2. Create and activate a virtual environment:
-python -m venv venv
-# Windows:
-.\venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
+Create and activate a virtual environment:  
+`python -m venv venv`  
 
-3. Install dependencies:
-pip install -r requirements.txt
+Windows:  
+`.\venv\Scripts\activate`  
 
-4. Start the bot:
-python bot.py
+Linux/macOS:  
+`source venv/bin/activate`  
 
-## Discord Role Hierarchy Note
+Install dependencies:  
+`pip install -r requirements.txt`  
+
+Start the bot:  
+`python bot.py`  
+
+# Discord Role Hierarchy Note
 
 The bot's own role on the Discord server must be placed higher in the role list than the role it assigns (STUDENT_ROLE_ID). Otherwise, Discord's permission system prevents the bot from granting the role.
