@@ -71,7 +71,8 @@ def _dispatch_email(to_email: str, code: str) -> None:
     msg.attach(MIMEText(text_content, "plain", "utf-8"))
     msg.attach(MIMEText(html_content, "html", "utf-8"))
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        smtp.starttls()
         smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
         smtp.sendmail(GMAIL_USER, to_email, msg.as_string())
 
