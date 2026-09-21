@@ -31,6 +31,7 @@ STUDENT_ROLE_ID=your_student_role_id
 ALLOWED_DOMAIN=@student.hh.se
 BREVO_API_KEY=your_brevo_api_key
 GMAIL_USER=your@email.com
+```
 
 # Local Setup
 
